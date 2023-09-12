@@ -10,9 +10,9 @@ void perception_etflab::AABB::make(std::vector<pcl::PointCloud<pcl::PointXYZRGB>
 
     for (pcl::PointCloud<pcl::PointXYZRGB>::Ptr cluster : clusters)
     {
-        // Compute the bounding-box for each cluster
+        // Compute AABB for each cluster
         pcl::getMinMax3D(*cluster, min_point, max_point);
-        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Bounding-box %d. min: (%f, %f, %f), max: (%f, %f, %f)",
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "AABB %d. min: (%f, %f, %f), max: (%f, %f, %f)",
             j++, min_point.x(), min_point.y(), min_point.z(), max_point.x(), max_point.y(), max_point.z());
 
         dim.x = max_point.x() - min_point.x();
@@ -24,7 +24,7 @@ void perception_etflab::AABB::make(std::vector<pcl::PointCloud<pcl::PointXYZRGB>
         pos.y = (min_point.y() + max_point.y()) / 2;
         pos.z = (min_point.z() + max_point.z()) / 2;
         boxes->emplace_back(pos);
-        // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Bounding-box position: (%f, %f, %f) and dimensions: (%f, %f, %f)", 
+        // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "AABB position: (%f, %f, %f) and dimensions: (%f, %f, %f)", 
         //     pos.x, pos.y, pos.z, dim.x, dim.y, dim.z);
     }
 
