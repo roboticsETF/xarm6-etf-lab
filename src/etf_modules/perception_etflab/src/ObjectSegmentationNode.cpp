@@ -3,9 +3,10 @@
 perception_etflab::ObjectSegmentationNode::ObjectSegmentationNode(const std::string node_name, const std::string config_file_path) : 
     Node(node_name),
     Robot(config_file_path),
-    Cluster(config_file_path),
+    Clusters(config_file_path),
 	AABB(),
-	ConvexHulls()
+	ConvexHulls(),
+	Obstacles()
 {
 	this->declare_parameter<std::string>("input_cloud", "pointcloud_combined");
 	this->declare_parameter<std::string>("objects_cloud", "objects_cloud");
@@ -96,21 +97,23 @@ void perception_etflab::ObjectSegmentationNode::pointCloudCallback(const sensor_
    	extract.setNegative(true);
    	extract.filter(*output_cloud_xyzrgb3);
 
-    removeOutliers(*output_cloud_xyzrgb3);
-  	RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "After removing outliers, point cloud size is %d.", output_cloud_xyzrgb3->size());
+    removeOutliers(output_cloud_xyzrgb3);
+	Robot::removeFromScene2(output_cloud_xyzrgb3);
+	Obstacles::move(output_cloud_xyzrgb3);
 
     std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> pcl_clusters;
-    Cluster::computeClusters(output_cloud_xyzrgb3, pcl_clusters);
+    Clusters::computeClusters(output_cloud_xyzrgb3, pcl_clusters);
 
-	// Robot::removeFromScene_v2(pcl_clusters);  // If using, uncomment "xarm_client_node" and "xarm_client" in the 'Robot' constructor
-    Robot::removeFromScene(pcl_clusters);
+	// Robot::removeFromScene(pcl_clusters);
+	// Robot::removeFromScene3(pcl_clusters);  // If using, uncomment "xarm_client_node" and "xarm_client" in the 'Robot' constructor
 	// Robot::visualizeCapsules();
     // Robot::visualizeSkeleton();
+	// Obstacles::move(pcl_clusters);
 
   	publishObjectsPointCloud(pcl_clusters);
 
     std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> pcl_subclusters;
-    Cluster::computeSubclusters(pcl_clusters, pcl_subclusters);
+    Clusters::computeSubclusters(pcl_clusters, pcl_subclusters);
 
     AABB::make(pcl_subclusters);
     AABB::publish();
@@ -143,15 +146,18 @@ void perception_etflab::ObjectSegmentationNode::publishObjectsPointCloud(std::ve
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Publishing output point cloud of size %d...", pcl->size());
 }
 
-void perception_etflab::ObjectSegmentationNode::removeOutliers(pcl::PointCloud<pcl::PointXYZRGB> &pcl)
+void perception_etflab::ObjectSegmentationNode::removeOutliers(pcl::PointCloud<pcl::PointXYZRGB>::Ptr pcl)
 {
-    if (pcl.empty())
+    if (pcl->empty())
         return;
 
-    for (pcl::PointCloud<pcl::PointXYZRGB>::iterator pcl_point = pcl.end()-1; pcl_point >= pcl.begin(); pcl_point--)
+    for (pcl::PointCloud<pcl::PointXYZRGB>::iterator pcl_point = pcl->end()-1; pcl_point >= pcl->begin(); pcl_point--)
 	{
         Eigen::Vector3f P(pcl_point->x, pcl_point->y, pcl_point->z);
-        if (P.head(2).norm() > Robot::getTableRadius())   // All points outside the table
-            pcl.erase(pcl_point);
+        if (P.head(2).norm() > Robot::getTableRadius() || 							// All points outside the table
+			P.x() > -0.2 && P.x() < 0 && std::abs(P.y()) < 0.05 && P.z() < 0.07) 	// The robot cable from base through the table
+            	pcl->erase(pcl_point);
 	}
+
+  	RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "After removing outliers, point cloud size is %d.", pcl->size());
 }
