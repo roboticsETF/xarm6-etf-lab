@@ -29,7 +29,7 @@ void real_bringup::Planner::setMaxPlanningTime(float max_planning_time)
     }
 }
 
-bool real_bringup::Planner::planPath(std::shared_ptr<base::State> start)
+bool real_bringup::Planner::solve(std::shared_ptr<base::State> start)
 {
     ready = false;
     bool res = false;

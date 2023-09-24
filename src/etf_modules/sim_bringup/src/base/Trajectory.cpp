@@ -24,7 +24,7 @@ void sim_bringup::Trajectory::addPoint(const Eigen::VectorXf &point, float time_
 // 'delta_time': If not passed, configurations from 'path' remain the same, while their time instances are computed
 // 'delta_time': If passed, configurations are interpolated rendering their adjacent time instances equidistant with 'delta_time'
 void sim_bringup::Trajectory::addPath(const std::vector<std::shared_ptr<base::State>> &path, 
-                         bool omit_first_conf, float time_offset, float delta_time)
+                                      bool omit_first_conf, float time_offset, float delta_time)
 {
     Eigen::VectorXf q = path[0]->getCoord();
     Eigen::VectorXf q_next;
@@ -96,7 +96,7 @@ void sim_bringup::Trajectory::publish()
 {
     if (points.empty())
     {
-        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "There is no trajectory to publish!\n");
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "There is no trajectory to publish!");
         return;
     }
     
@@ -119,7 +119,7 @@ void sim_bringup::Trajectory::publish()
     }
 
     publisher->publish(msg);
-    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Publishing trajectory ...\n");
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Publishing trajectory ...");
 }
 
 void sim_bringup::Trajectory::clear()

@@ -18,7 +18,7 @@ namespace real_bringup
         void setMaxPlanningTime(float max_planning_time);
         inline void setScenario(std::shared_ptr<scenario::Scenario> &scenario_) { scenario = scenario_; }
 
-        bool planPath(std::shared_ptr<base::State> start = nullptr);
+        bool solve(std::shared_ptr<base::State> start = nullptr);
         inline const bool isReady() { return ready; }
 
     private:

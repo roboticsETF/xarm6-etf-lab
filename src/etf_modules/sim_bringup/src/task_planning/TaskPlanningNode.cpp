@@ -93,7 +93,7 @@ void sim_bringup::TaskPlanningNode::taskPlanningCallback()
                 AABB::updateEnvironment();
 
                 RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Planning the path..."); 
-                if (Planner::planPath())
+                if (Planner::solve())
                 {
                     Trajectory::addPath(Planner::getPath());
                     state = State::publishing_trajectory;

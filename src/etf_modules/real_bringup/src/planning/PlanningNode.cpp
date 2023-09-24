@@ -43,7 +43,7 @@ void real_bringup::PlanningNode::planningCallback()
             AABB::updateEnvironment();
 
             RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Planning the path..."); 
-            if (Planner::planPath())
+            if (Planner::solve())
             {
                 Trajectory::addPath(Planner::getPath());
                 state = publishing_trajectory;

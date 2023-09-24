@@ -15,19 +15,13 @@ namespace sim_bringup
         RealTimePlanningNode(const std::string node_name, const std::string config_file_path);
 
     protected:
-        void computingNextStateCallback();
-        void replanningCallback();
+        void planningCallback() override;
+        void replan(float replanning_time);
+        void updateCurrentState();
 
-        rclcpp::TimerBase::SharedPtr timer_computing_next_state;
-        rclcpp::TimerBase::SharedPtr timer_replanning;
-        std::chrono::_V2::steady_clock::time_point time_alg_start, time_iter_start, time_current;
+        std::chrono::_V2::steady_clock::time_point time_alg_start, time_iter_start;
 
-        enum State
-        {
-            generating_horizon,
-            moving_to_next_state
-        };
-        State state;
-
+    private:
+        bool init_iteration;
     };
 }
