@@ -29,7 +29,7 @@ perception_etflab::Robot::Robot(const std::string config_file_path)
     for (int i = 0; i < num_DOFs; i++)
         tolerance_factors.emplace_back(robot_node["tolerance_factors"][i].as<float>());
 
-    // Uncomment if you are using 'removeFromScene_v2' function
+    // Uncomment if you are using 'removeFromScene3' function
     // xarm_client_node = std::make_shared<rclcpp::Node>("xarm_client_node");
     // xarm_client.init(xarm_client_node, "xarm");
 }
@@ -82,12 +82,6 @@ void perception_etflab::Robot::removeFromScene(std::vector<pcl::PointCloud<pcl::
                 }
             }
 
-            if (!remove_cluster && point.x() > -0.2 && point.x() < 0 && std::abs(point.y()) < 0.05 && point.z() < 0.07)    // Filter the robot cable from base through the table
-            {
-                // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Point: (%f, %f, %f)", point.x(), point.y(), point.z());
-                remove_cluster = true;
-            }
-
             if (remove_cluster)
             {
                 // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Removing cluster!");
@@ -100,10 +94,46 @@ void perception_etflab::Robot::removeFromScene(std::vector<pcl::PointCloud<pcl::
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "After removing robot from the scene, there are %d clusters.", clusters.size());
 }
 
+// Remove all PCL points occupied by the robot's capsules.
+void perception_etflab::Robot::removeFromScene2(pcl::PointCloud<pcl::PointXYZRGB>::Ptr pcl)
+{
+    if (pcl->empty())
+        return;
+
+	// Compute robot skeleton only if the robot changed its configuration
+	if ((joints_state->getCoord() - robot->getConfiguration()->getCoord()).norm() > 1e-3)
+	{
+		// RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Robot is moving. Computing new skeleton for (%f, %f, %f, %f, %f, %f).", 
+		// 	joints_state->getCoord(0), joints_state->getCoord(1), joints_state->getCoord(2),
+		// 	joints_state->getCoord(3), joints_state->getCoord(4), joints_state->getCoord(5));
+		skeleton = robot->computeSkeleton(joints_state);
+	}
+    
+    for (pcl::PointCloud<pcl::PointXYZRGB>::iterator pcl_point = pcl->end()-1; pcl_point >= pcl->begin(); pcl_point--)
+    {
+        Eigen::Vector3f point(pcl_point->x, pcl_point->y, pcl_point->z);
+        for (int k = robot->getParts().size()-1; k >= 0; k--)
+        {
+            float d_c = std::get<0>(base::RealVectorSpace::distanceLineSegToPoint(skeleton->col(k), skeleton->col(k+1), point));
+            if (d_c < robot->getCapsuleRadius(k) * tolerance_factors[k])
+            {
+                // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Skeleton points for k = %d: (%f, %f, %f) to (%f, %f, %f) ", k,
+                //     skeleton->col(k).x(), skeleton->col(k).y(), skeleton->col(k).z(), 
+                //     skeleton->col(k+1).x(), skeleton->col(k+1).y(), skeleton->col(k+1).z());
+                // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Point: (%f, %f, %f)", point.x(), point.y(), point.z());
+                // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Distance from %d-th segment is %f.", k, d_c);
+                pcl->erase(pcl_point);
+                break;
+            }
+        }
+    }
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "After removing robot from the scene, point cloud size is %d.", pcl->size());
+}
+
 // This method requires using xarm_client.
 // Only points around robot gripper and cable are filtered, assuming that color filter was used previously to filter other points occupied by the robot.
 // If a single point from cluster (i-th component of 'clusters') is occupied, such cluster is completely removed.
-void perception_etflab::Robot::removeFromScene_v2(std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> &clusters)
+void perception_etflab::Robot::removeFromScene3(std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> &clusters)
 {
     if (clusters.empty())
         return;
@@ -133,9 +163,9 @@ void perception_etflab::Robot::removeFromScene_v2(std::vector<pcl::PointCloud<pc
         // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Considering cluster %d", --cnt);
         for (pcl::PointCloud<pcl::PointXYZRGB>::iterator pcl_point = (*cluster)->begin(); pcl_point < (*cluster)->end(); pcl_point++)
 	    {
+            // Filter points occupying the last link
             Eigen::Vector3f point(pcl_point->x, pcl_point->y, pcl_point->z);
-            if (point(0) > -0.2 && point(0) < 0 && std::abs(point(1)) < 0.05 && point(2) < 0.07 ||                      // Filter the robot cable from base through the table
-                std::get<0>(base::RealVectorSpace::distanceLineSegToPoint(A, B, point)) < r * tolerance_factors.back()) // Filter points occupying the last link
+            if (std::get<0>(base::RealVectorSpace::distanceLineSegToPoint(A, B, point)) < r * tolerance_factors.back())
             {
 		        // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Point: (%f, %f, %f). Removing cluster! ", point.x(), point.y(), point.z());
                 clusters.erase(cluster);

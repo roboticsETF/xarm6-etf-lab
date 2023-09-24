@@ -1,6 +1,6 @@
-#include "environment/Cluster.h"
+#include "environment/Clusters.h"
 
-perception_etflab::Cluster::Cluster(const std::string config_file_path)
+perception_etflab::Clusters::Clusters(const std::string config_file_path)
 {
     std::string project_abs_path(__FILE__);
 	for (int i = 0; i < 4; i++)
@@ -14,7 +14,7 @@ perception_etflab::Cluster::Cluster(const std::string config_file_path)
     concatenation_tolerance = perception_node["concatenation_tolerance"].as<float>();
 }
 
-void perception_etflab::Cluster::computeClusters(pcl::PointCloud<pcl::PointXYZRGB>::Ptr pcl, 
+void perception_etflab::Clusters::computeClusters(pcl::PointCloud<pcl::PointXYZRGB>::Ptr pcl, 
                                                  std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> &clusters)
 {
     // Set up KD-Tree for searching and perform Euclidean clustering
@@ -47,7 +47,7 @@ void perception_etflab::Cluster::computeClusters(pcl::PointCloud<pcl::PointXYZRG
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Point cloud is segmented into %d clusters.", clusters.size());
 }
 
-void perception_etflab::Cluster::computeSubclusters(std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> &clusters,
+void perception_etflab::Clusters::computeSubclusters(std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> &clusters,
     std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> &subclusters)
 {
     Eigen::Vector4f min_point, max_point;
@@ -79,7 +79,7 @@ void perception_etflab::Cluster::computeSubclusters(std::vector<pcl::PointCloud<
         subclusters.size(), max_dim_subcluster.x(), max_dim_subcluster.y(), max_dim_subcluster.z());
 }
 
-void perception_etflab::Cluster::divideCluster(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cluster, 
+void perception_etflab::Clusters::divideCluster(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cluster, 
                                                std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> &subclusters, 
                                                float min_point, float max_point, float max_dim, std::string &axis)
 {

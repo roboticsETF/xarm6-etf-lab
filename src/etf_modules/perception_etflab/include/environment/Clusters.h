@@ -24,10 +24,10 @@
 
 namespace perception_etflab
 {
-    class Cluster
+    class Clusters
     {
     public:
-        Cluster(const std::string config_file_path);
+        Clusters(const std::string config_file_path);
 
         inline void setMaxDimSubcluster(const Eigen::Vector3f &max_dim_subcluster_) { max_dim_subcluster = max_dim_subcluster_; }
         inline void setConcatenationTolerance(float concatenation_tolerance_) { concatenation_tolerance = concatenation_tolerance_; }
