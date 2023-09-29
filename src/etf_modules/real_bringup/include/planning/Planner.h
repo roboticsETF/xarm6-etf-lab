@@ -14,6 +14,7 @@ namespace real_bringup
         Planner(const std::string config_file_path);
 
         inline const std::vector<std::shared_ptr<base::State>> &getPath() { return path; }
+        inline const std::string &getName() { return name; }
         inline void setName(const std::string &name_) { name = name_; }
         void setMaxPlanningTime(float max_planning_time);
         inline void setScenario(std::shared_ptr<scenario::Scenario> &scenario_) { scenario = scenario_; }

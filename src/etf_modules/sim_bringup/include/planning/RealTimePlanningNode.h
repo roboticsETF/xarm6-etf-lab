@@ -4,6 +4,7 @@
 
 #include "planning/PlanningNode.h"
 
+#include <thread>
 #include <DRGBTConnect.h>
 
 namespace sim_bringup
@@ -20,8 +21,6 @@ namespace sim_bringup
         void updateCurrentState();
 
         std::chrono::_V2::steady_clock::time_point time_alg_start, time_iter_start;
-
-    private:
-        bool init_iteration;
+    
     };
 }
