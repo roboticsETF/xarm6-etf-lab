@@ -19,16 +19,13 @@ void sim_bringup::Trajectory::addPoint(const Eigen::VectorXf &point, float time_
 }
 
 // Add and parametrize 'path' in order to satisfy the maximal angular velocity 'max_ang_vel'
+// 'time_offset' in [ms]: If passed, each time instance from 'time_instances' is shifted for the value of 'time_offset'
 // 'omit_first_conf': If true, the first configuration from 'path' is omitted
-// 'time_offset' in [s]: If passed, each time instance from 'time_instances' is shifted for the value of 'time_offset'
-// 'delta_time': If not passed, configurations from 'path' remain the same, while their time instances are computed
-// 'delta_time': If passed, configurations are interpolated rendering their adjacent time instances equidistant with 'delta_time'
-void sim_bringup::Trajectory::addPath(const std::vector<std::shared_ptr<base::State>> &path, 
-                                      bool omit_first_conf, float time_offset, float delta_time)
+void sim_bringup::Trajectory::addPath(const std::vector<std::shared_ptr<base::State>> &path, float time_offset, bool omit_first_conf)
 {
     Eigen::VectorXf q = path[0]->getCoord();
     Eigen::VectorXf q_next;
-    float time = time_offset;
+    float time = time_offset / 1000;
     clear();
 
     if (!omit_first_conf)
@@ -37,59 +34,34 @@ void sim_bringup::Trajectory::addPath(const std::vector<std::shared_ptr<base::St
         time_instances.emplace_back(time);
     }
 
-    if (delta_time == 0)
+    for (int i = 1; i < path.size(); i++)
     {
-        for (int i = 1; i < path.size(); i++)
-        {
-            q_next = path[i]->getCoord();
-            time += (q_next - q).norm() / max_ang_vel;
-            points.emplace_back(q_next);
-            time_instances.emplace_back(time);
-            q = q_next;
-        }
-    }
-    else
-    {
-        float max_delta_angle = max_ang_vel * delta_time;
-        for (int i = 1; i < path.size(); i++)
-        {
-            q_next = path[i]->getCoord();
-            float d = (q_next - q).norm();
-            bool status = false;
-            while (!status)
-            {
-                if (d > max_delta_angle)
-                {
-                    q += ((q_next - q) / d) * max_delta_angle;
-                    d -= max_delta_angle;
-                }
-                else
-                {
-                    q = q_next;
-                    status = true;
-                }
-                points.emplace_back(q);
-                time += delta_time;
-                time_instances.emplace_back(time);
-            }
-        }
+        q_next = path[i]->getCoord();
+        time += (q_next - q).cwiseAbs().maxCoeff() / max_ang_vel;
+        points.emplace_back(q_next);
+        time_instances.emplace_back(time);
+        q = q_next;
     }
 }
 
+// 'time_instances_' are in [ms]
 void sim_bringup::Trajectory::addPath(const std::vector<std::shared_ptr<base::State>> &path, const std::vector<float> &time_instances_)
 {
-    clear();    
+    clear();
     for (int i = 0; i < path.size(); i++)
+    {
         points.emplace_back(path[i]->getCoord());
-    
-    time_instances = time_instances_;
+        time_instances.emplace_back(time_instances_[i] / 1000);     // Conversion from [ms] to [s]
+    }
 }
 
+// 'time_instances_' are in [ms]
 void sim_bringup::Trajectory::addPath(const std::vector<Eigen::VectorXf> &path, const std::vector<float> &time_instances_)
 {
-    clear();    
+    clear();
     points = path;
-    time_instances = time_instances_;
+    for (int i = 0; i < path.size(); i++)
+        time_instances.emplace_back(time_instances_[i] / 1000);     // Conversion from [ms] to [s]
 }
 
 void sim_bringup::Trajectory::publish()

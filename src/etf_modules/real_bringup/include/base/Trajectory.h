@@ -21,8 +21,7 @@ namespace real_bringup
         
         void addPoint(std::shared_ptr<base::State> point, float time_instance);
         void addPoint(const Eigen::VectorXf &point, float time_instance);
-        void addPath(const std::vector<std::shared_ptr<base::State>> &path, 
-                    bool omit_first_conf = false, float time_offset = 0, float delta_time = 0);
+        void addPath(const std::vector<std::shared_ptr<base::State>> &path, float time_offset = 0, bool omit_first_conf = false);
         void addPath(const std::vector<std::shared_ptr<base::State>> &path, const std::vector<float> &time_instances_);
         void addPath(const std::vector<Eigen::VectorXf> &path, const std::vector<float> &time_instances_);
         void publish();

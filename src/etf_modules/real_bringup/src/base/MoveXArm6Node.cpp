@@ -87,11 +87,11 @@ void real_bringup::MoveXArm6Node::moveInJointSpace()
 
     q << -M_PI_2, 0, 0, M_PI, M_PI_2, 0;
     path.emplace_back(q);
-    time_instances.emplace_back(2);
+    time_instances.emplace_back(2000);
     
     q << -M_PI_2, -M_PI_4, 0, M_PI, M_PI_2, 0;
     path.emplace_back(q);
-    time_instances.emplace_back(4);
+    time_instances.emplace_back(4000);
 
     Trajectory::addPath(path, time_instances);
     Trajectory::publish();
