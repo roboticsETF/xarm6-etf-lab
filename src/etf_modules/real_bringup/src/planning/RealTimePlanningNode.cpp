@@ -6,7 +6,7 @@
 
 typedef planning::drbt::DRGBTConnect DP;    // 'DP' is Dynamic Planner
 
-sim_bringup::RealTimePlanningNode::RealTimePlanningNode(const std::string node_name, const std::string config_file_path) : 
+real_bringup::RealTimePlanningNode::RealTimePlanningNode(const std::string node_name, const std::string config_file_path) : 
     PlanningNode(node_name, config_file_path),
     DP(scenario->getStateSpace(), scenario->getStart(), scenario->getGoal())
 {
@@ -19,7 +19,7 @@ sim_bringup::RealTimePlanningNode::RealTimePlanningNode(const std::string node_n
     time_alg_start = std::chrono::steady_clock::now();      // Start the algorithm clock
 }
 
-void sim_bringup::RealTimePlanningNode::planningCallback()
+void real_bringup::RealTimePlanningNode::planningCallback()
 {
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "\n\nIteration num. %d", DP::planner_info->getNumIterations());
     time_iter_start = std::chrono::steady_clock::now();     // Start the iteration clock
@@ -108,7 +108,7 @@ void sim_bringup::RealTimePlanningNode::planningCallback()
 }
 
 // Replan the predefined path to the goal
-void sim_bringup::RealTimePlanningNode::replan(float replanning_time)
+void real_bringup::RealTimePlanningNode::replan(float replanning_time)
 {
     try
     {
@@ -168,7 +168,7 @@ void sim_bringup::RealTimePlanningNode::replan(float replanning_time)
 }
 
 // Update the current state of the robot towards 'q_next' moving with maximal velocity
-void sim_bringup::RealTimePlanningNode::updateCurrentState()
+void real_bringup::RealTimePlanningNode::updateCurrentState()
 {
     std::shared_ptr<base::State> q_new = DP::ss->getNewState(DP::q_next->getStateReached());
     float time_remain = (DRGBTConnectConfig::MAX_ITER_TIME 
@@ -221,15 +221,15 @@ void sim_bringup::RealTimePlanningNode::updateCurrentState()
         std::vector<float> time_instances;
         float time;
 
-        if (q_current_prev != nullptr)
-        {
-            float dist = DP::ss->getNorm(q_current_prev, DP::q_current);
-            std::shared_ptr<base::State> q_current_new = DP::ss->interpolateEdge(q_current_prev, DP::q_current, 1.2*dist, dist);
-            path.emplace_back(q_current_new);
-            time = (DP::q_current->getCoord() - q_current_new->getCoord()).cwiseAbs().maxCoeff() 
-                   / Robot::getMaxAngVel() * 1000;
-            time_instances.emplace_back(time);
-        }
+        // if (q_current_prev != nullptr)
+        // {
+        //     float dist = DP::ss->getNorm(q_current_prev, DP::q_current);
+        //     std::shared_ptr<base::State> q_current_new = DP::ss->interpolateEdge(q_current_prev, DP::q_current, 1.2*dist, dist);
+        //     path.emplace_back(q_current_new);
+        //     time = (DP::q_current->getCoord() - q_current_new->getCoord()).cwiseAbs().maxCoeff() 
+        //            / Robot::getMaxAngVel() * 1000;
+        //     time_instances.emplace_back(time);
+        // }
 
         path.emplace_back(q_new);
         time = time_remain;

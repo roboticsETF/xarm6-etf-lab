@@ -23,7 +23,7 @@ planner:
   # name: "RGBTConnect"
   name: "RGBMT*"
   configurations: "/RPMPLv2"
-  max_planning_time: 800                                    # In [ms]
+  max_planning_time: 0                                      # Not relevant here
 
 obstacles:
   # fixed obstacle - table

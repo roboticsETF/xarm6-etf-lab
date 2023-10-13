@@ -7,9 +7,9 @@
 #include <thread>
 #include <DRGBTConnect.h>
 
-namespace sim_bringup
+namespace real_bringup
 {
-    class RealTimePlanningNode : public sim_bringup::PlanningNode, 
+    class RealTimePlanningNode : public real_bringup::PlanningNode, 
                                  public planning::drbt::DRGBTConnect
     {
     public:
@@ -23,6 +23,6 @@ namespace sim_bringup
         std::chrono::_V2::steady_clock::time_point time_alg_start, time_iter_start;
         std::shared_ptr<planning::drbt::HorizonState> q_next_prev;
         std::shared_ptr<base::State> q_current_prev;
-
+    
     };
 }

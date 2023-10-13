@@ -54,6 +54,7 @@ void real_bringup::MoveXArm6Node::moveXArm6Callback()
         setPosition({400, 0, 133, 0, M_PI_2, 0}, 200, 1000);
         // Robot::xarm_client.set_position({400, 0, 133, 0, M_PI_2, 0}, -1, 0.7*Robot::getMaxLinVel(), 0.7*Robot::getMaxLinAcc(), 0, false);
         state = closing_gripper;
+        break;
 
     case closing_gripper:
         Robot::xarm_client.set_gripper_position(0);

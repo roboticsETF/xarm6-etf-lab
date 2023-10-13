@@ -37,6 +37,7 @@ perception_etflab::ObjectSegmentationNode::ObjectSegmentationNode(const std::str
 
 void perception_etflab::ObjectSegmentationNode::pointCloudCallback(const sensor_msgs::msg::PointCloud2::SharedPtr msg)
 {
+	auto time_start = std::chrono::steady_clock::now();
 	pcl::PCLPointCloud2::Ptr input_pcl_cloud(new pcl::PCLPointCloud2());
 	pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud_xyzrgb(new pcl::PointCloud<pcl::PointXYZRGB>);
 	pcl::PCLPointCloud2::Ptr output_cloud(new pcl::PCLPointCloud2());
@@ -98,13 +99,13 @@ void perception_etflab::ObjectSegmentationNode::pointCloudCallback(const sensor_
    	extract.filter(*output_cloud_xyzrgb3);
 
     removeOutliers(output_cloud_xyzrgb3);
-	Robot::removeFromScene2(output_cloud_xyzrgb3);
-	Obstacles::move(output_cloud_xyzrgb3);
+	// Robot::removeFromScene2(output_cloud_xyzrgb3);
+	// Obstacles::move(output_cloud_xyzrgb3);	// Needs to be commented when real robot is used!
 
     std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> pcl_clusters;
     Clusters::computeClusters(output_cloud_xyzrgb3, pcl_clusters);
 
-	// Robot::removeFromScene(pcl_clusters);
+	Robot::removeFromScene(pcl_clusters);
 	// Robot::removeFromScene3(pcl_clusters);  // If using, uncomment "xarm_client_node" and "xarm_client" in the 'Robot' constructor
 	// Robot::visualizeCapsules();
     // Robot::visualizeSkeleton();
@@ -123,6 +124,8 @@ void perception_etflab::ObjectSegmentationNode::pointCloudCallback(const sensor_
     // ConvexHulls::publish();
     // ConvexHulls::visualize();
  
+   	RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Time elapsed: %d [ms] ", 
+		std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - time_start).count());
    	RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "---------------------------------------------------------------------");
 }
 
