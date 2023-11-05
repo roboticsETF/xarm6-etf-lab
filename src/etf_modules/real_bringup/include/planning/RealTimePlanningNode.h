@@ -5,12 +5,12 @@
 #include "planning/PlanningNode.h"
 
 #include <thread>
-#include <DRGBTConnect.h>
+#include <DRGBT.h>
 
 namespace real_bringup
 {
     class RealTimePlanningNode : public real_bringup::PlanningNode, 
-                                 public planning::drbt::DRGBTConnect
+                                 public planning::drbt::DRGBT
     {
     public:
         RealTimePlanningNode(const std::string node_name, const std::string config_file_path);

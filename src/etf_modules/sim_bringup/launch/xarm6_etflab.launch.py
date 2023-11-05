@@ -17,7 +17,7 @@ from launch.event_handlers import OnProcessExit, OnProcessStart
 from ament_index_python import get_package_share_directory
 
 def generate_launch_description():
-    report_type = LaunchConfiguration('report_type', default='rich')     # normal, rich, dev (see: https://github.com/xArm-Developer/xarm_ros#report_type-argument)
+    report_type = LaunchConfiguration('report_type', default='dev')     # normal, rich, dev (see: https://github.com/xArm-Developer/xarm_ros#report_type-argument)
     dof = LaunchConfiguration('dof', default='6')
     prefix = LaunchConfiguration('prefix', default='')
     hw_ns = LaunchConfiguration('hw_ns', default='xarm')

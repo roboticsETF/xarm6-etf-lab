@@ -75,7 +75,7 @@ bool real_bringup::Planner::solve(std::shared_ptr<base::State> start)
         if (res)
             path = planner->getPath();
     }
-    catch (std::domain_error &e)
+    catch (std::exception &e)
     {
         LOG(ERROR) << e.what();
     }

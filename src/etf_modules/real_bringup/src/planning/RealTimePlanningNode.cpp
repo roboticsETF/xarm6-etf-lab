@@ -4,13 +4,13 @@
 
 #include "planning/RealTimePlanningNode.h"
 
-typedef planning::drbt::DRGBTConnect DP;    // 'DP' is Dynamic Planner
+typedef planning::drbt::DRGBT DP;    // 'DP' is Dynamic Planner
 
 real_bringup::RealTimePlanningNode::RealTimePlanningNode(const std::string node_name, const std::string config_file_path) : 
     PlanningNode(node_name, config_file_path),
     DP(scenario->getStateSpace(), scenario->getStart(), scenario->getGoal())
 {
-    DRGBTConnectConfig::MAX_ITER_TIME = BaseNode::period;
+    DRGBTConfig::MAX_ITER_TIME = BaseNode::period;
     if (Planner::getName() == "RGBMT*")
         RGBMTStarConfig::TERMINATE_WHEN_PATH_IS_FOUND = true;
     
@@ -29,7 +29,7 @@ void real_bringup::RealTimePlanningNode::planningCallback()
     {
         AABB::updateEnvironment();
         RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Obtaining the inital path...");
-        replan(DRGBTConnectConfig::MAX_ITER_TIME);
+        replan(DRGBTConfig::MAX_ITER_TIME);
         
         DP::planner_info->setNumIterations(DP::planner_info->getNumIterations() + 1);
         DP::planner_info->addIterationTime(DP::getElapsedTime(time_iter_start, std::chrono::steady_clock::now()));
@@ -58,10 +58,13 @@ void real_bringup::RealTimePlanningNode::planningCallback()
         //     std::cout << i << ". state:\n" << DP::horizon[i] << std::endl; 
     }
 
-    // Moving from 'q_current' towards 'q_next'
-    // Compute the horizon and the next state
+    // Since the environment has changed, a new distance is required!
+    float d_c = DP::ss->computeDistance(DP::q_current, true);
+
+    // Update the horizon and the next state
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Computing horizon...");
-    DP::computeHorizon();
+    DP::updateHorizon(d_c);
+    DP::generateGBur();
 
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Computing the next state...");
     DP::computeNextState();
@@ -80,7 +83,7 @@ void real_bringup::RealTimePlanningNode::planningCallback()
     // Replanning procedure assessment
     if (DP::replanning || DP::whetherToReplan())
     {
-        float time_remaining = DRGBTConnectConfig::MAX_ITER_TIME 
+        float time_remaining = DRGBTConfig::MAX_ITER_TIME 
                                - DP::getElapsedTime(time_iter_start, std::chrono::steady_clock::now()) 
                                - 10;     // 10 [ms] is reserved for the following code lines
         replan(time_remaining);
@@ -90,7 +93,7 @@ void real_bringup::RealTimePlanningNode::planningCallback()
 
     // Checking the real-time execution
     auto time_current = std::chrono::steady_clock::now();
-    float time_iter_remain = DRGBTConnectConfig::MAX_ITER_TIME - DP::getElapsedTime(time_iter_start, time_current);
+    float time_iter_remain = DRGBTConfig::MAX_ITER_TIME - DP::getElapsedTime(time_iter_start, time_current);
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Remaining iteration time is %f [ms].", time_iter_remain);
     if (time_iter_remain < 0)
         RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "********** Real-time is broken. %f [ms] exceeded!!! **********",
@@ -135,7 +138,7 @@ void real_bringup::RealTimePlanningNode::replan(float replanning_time)
             base::State::Status status;
             std::shared_ptr<base::State> q_new;
             float delta_q_max = std::sqrt(DP::ss->getNumDimensions()) * Robot::getMaxAngVel() 
-                                * DRGBTConnectConfig::MAX_ITER_TIME / 1000;     // length of a hyper-diagonal
+                                * DRGBTConfig::MAX_ITER_TIME / 1000;     // length of a hyper-diagonal
 
             for (int i = 1; i < Planner::getPath().size(); i++)
             {
@@ -171,7 +174,7 @@ void real_bringup::RealTimePlanningNode::replan(float replanning_time)
 void real_bringup::RealTimePlanningNode::updateCurrentState()
 {
     std::shared_ptr<base::State> q_new = DP::ss->getNewState(DP::q_next->getStateReached());
-    float time_remain = (DRGBTConnectConfig::MAX_ITER_TIME 
+    float time_remain = (DRGBTConfig::MAX_ITER_TIME 
                         - DP::getElapsedTime(time_iter_start, std::chrono::steady_clock::now()));
     float delta_q_max = Robot::getMaxAngVel() * time_remain / 1000;     // Time conversion from [ms] to [s]
 
@@ -206,7 +209,7 @@ void real_bringup::RealTimePlanningNode::updateCurrentState()
             DP::status = base::State::Status::Trapped;
             DP::replanning = true;
             DP::horizon.clear();
-            throw std::runtime_error("Robot is trapped! ");
+            throw std::domain_error("Robot is trapped! ");
         }
     }
     catch(std::exception &e)
@@ -251,7 +254,7 @@ void real_bringup::RealTimePlanningNode::updateCurrentState()
             time_instances.emplace_back(time);
         }
             
-        float time_max = time_remain + DRGBTConnectConfig::MAX_ITER_TIME;
+        float time_max = time_remain + DRGBTConfig::MAX_ITER_TIME;
         if (time < time_max && DP::q_next->getIndex() != -1)    // If 'q_next' lies in 'predefined_path'
         {
             for (int i = DP::q_next->getIndex(); i < DP::predefined_path.size()-1; i++)
