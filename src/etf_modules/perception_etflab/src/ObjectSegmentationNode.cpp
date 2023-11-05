@@ -98,25 +98,42 @@ void perception_etflab::ObjectSegmentationNode::pointCloudCallback(const sensor_
    	extract.setNegative(true);
    	extract.filter(*output_cloud_xyzrgb3);
 
-    removeOutliers(output_cloud_xyzrgb3);
-	// Robot::removeFromScene2(output_cloud_xyzrgb3);
-	// Obstacles::move(output_cloud_xyzrgb3);	// Needs to be commented when real robot is used!
-
     std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> pcl_clusters;
+    std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> pcl_subclusters;
+
+
+	// ********************* FOR REAL ROBOT ********************* //
+    // removeOutliers(output_cloud_xyzrgb3);
+	// // Robot::removeFromScene2(output_cloud_xyzrgb3);
+    // Clusters::computeClusters(output_cloud_xyzrgb3, pcl_clusters);
+
+	// Robot::removeFromScene(pcl_clusters);	// Better for real robot!
+	// // Robot::removeFromScene3(pcl_clusters);  // If using, uncomment "xarm_client_node" and "xarm_client" in the 'Robot' constructor
+
+  	// publishObjectsPointCloud(pcl_clusters);
+
+    // Clusters::computeSubclusters(pcl_clusters, pcl_subclusters);
+
+    // AABB::make(pcl_subclusters);
+    // AABB::publish();
+    // AABB::visualize();
+
+
+	// ********************* FOR SIMULATION ********************* //
+	// Robot::removeFromScene2(output_cloud_xyzrgb3);
     Clusters::computeClusters(output_cloud_xyzrgb3, pcl_clusters);
 
-	Robot::removeFromScene(pcl_clusters);
-	// Robot::removeFromScene3(pcl_clusters);  // If using, uncomment "xarm_client_node" and "xarm_client" in the 'Robot' constructor
+	// Robot::removeFromScene(pcl_clusters);
 	// Robot::visualizeCapsules();
-    // Robot::visualizeSkeleton();
-	// Obstacles::move(pcl_clusters);
+    Robot::visualizeSkeleton();
+
+	Obstacles::move(pcl_clusters);
 
   	publishObjectsPointCloud(pcl_clusters);
 
-    std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> pcl_subclusters;
-    Clusters::computeSubclusters(pcl_clusters, pcl_subclusters);
+    // Clusters::computeSubclusters(pcl_clusters, pcl_subclusters);
 
-    AABB::make(pcl_subclusters);
+    AABB::make(pcl_clusters);
     AABB::publish();
     AABB::visualize();
 
