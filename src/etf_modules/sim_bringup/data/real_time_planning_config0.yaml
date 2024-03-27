@@ -1,8 +1,8 @@
-period: 100                                                   # Maximal runtime of a single iteration in [ms]
+period: 0.1                                                   # Maximal runtime of a single iteration in [s]
 
 real_time:
   scheduling: "FPS"                                           # "FPS" - Fixed Priority Scheduling
-  max_time_task1: 50                                          # Maximal time in [ms] which Task 1 can take from the processor
+  max_time_task1: 0.050                                       # Maximal time in [s] which Task 1 can take from the processor
 
 robot:
   type: "xarm6"
@@ -21,17 +21,15 @@ robot:
   # max_vel:  [1, 1, 1, 1, 1, 1]  # Maximal velocity of each robot's joint in [rad/s]
   max_acc:  [6.3611, 6.3611, 6.3611, 6.3611, 6.3611, 6.3611]  # Maximal acceleration of each robot's joint in [rad/s²]
   max_jerk: [159.15, 159.15, 159.15, 159.15, 159.15, 159.15]  # Maximal jerk of each robot's joint in [rad/s³]
-  max_lin_vel: 500                                          # In [mm/s]
-  max_lin_acc: 500                                          # In [mm/s²]
-  max_ang_vel: 0.8                                          # In [rad/s]
-  max_ang_acc: 0.8                                          # In [rad/s²]
 
 planner:
-  # name: "RRTConnect"
-  # name: "RBTConnect"
-  # name: "RGBTConnect"
-  name: "RGBMT*"
+  # type: "RRT-Connect"
+  # type: "RBT-Connect"
+  # type: "RGBT-Connect"
+  type: "RGBMT*"
   configurations: "/RPMPLv2"
+  max_edge_length: 0.5                                        # In [rad]
+  trajectory_max_time_step: 0.1                               # In [s]
 
 environment:
   - box:
@@ -40,4 +38,4 @@ environment:
       pos: [0, 0, -0.05]
 
 cameras:
-  min_num_captures: 0                                       # Minimal number of captures/frames of a single obstacle to become valid
+  min_num_captures: 0                                         # Minimal number of captures/frames of a single obstacle to become valid

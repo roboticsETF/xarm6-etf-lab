@@ -24,6 +24,7 @@ namespace perception_etflab
         Robot(const std::string &config_file_path);
 
 		inline float getTableRadius() const { return table_radius; }
+        inline size_t getNumDOFs() const { return num_DOFs; }
 
 		void jointsStateCallback(const control_msgs::msg::JointTrajectoryControllerState::SharedPtr msg);
 		void removeFromScene(std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> &clusters);
@@ -43,5 +44,6 @@ namespace perception_etflab
 		xarm_api::XArmROSClient xarm_client;
         std::vector<float> tolerance_factors;
 		float table_radius;
+        size_t num_DOFs;
     };
 }

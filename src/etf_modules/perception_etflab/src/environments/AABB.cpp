@@ -4,15 +4,15 @@
 void perception_etflab::AABB::make(const std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> &clusters)
 {
     boxes = std::make_shared<pcl::PointCloud<pcl::PointXYZ>>();
-    Eigen::Vector4f min_point, max_point;
-    pcl::PointXYZ dim, pos;
-    int j = 0;
+    Eigen::Vector4f min_point {}, max_point {};
+    pcl::PointXYZ dim {}, pos {};
+    size_t j { 0 };
 
     for (pcl::PointCloud<pcl::PointXYZRGB>::Ptr cluster : clusters)
     {
         // Compute AABB for each cluster
         pcl::getMinMax3D(*cluster, min_point, max_point);
-        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "AABB %d. min: (%f, %f, %f), max: (%f, %f, %f)",
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "AABB %ld. min: (%f, %f, %f), max: (%f, %f, %f)",
             j++, min_point.x(), min_point.y(), min_point.z(), max_point.x(), max_point.y(), max_point.z());
 
         dim.x = max_point.x() - min_point.x();
@@ -37,13 +37,13 @@ void perception_etflab::AABB::publish()
     pcl::toROSMsg(*boxes, output_cloud_ros);
 	// output_cloud_ros.header.stamp = now();
 	publisher->publish(output_cloud_ros);
-    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Publishing %d AABBs...", boxes->size() / 2);
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Publishing %ld AABBs...", boxes->size() / 2);
 }
 
 void perception_etflab::AABB::visualize()
 {
     visualization_msgs::msg::MarkerArray marker_array_msg;
-    visualization_msgs::msg::Marker marker;    
+    visualization_msgs::msg::Marker marker;
     marker.type = visualization_msgs::msg::Marker::CUBE;
     marker.action = visualization_msgs::msg::Marker::ADD;
     marker.ns = "AABB";
@@ -57,7 +57,7 @@ void perception_etflab::AABB::visualize()
     marker.color.g = 0.0;
     marker.color.b = 0.0;
     marker.color.a = 0.5;
-    for (int i = 0; i < boxes->size(); i += 2)
+    for (size_t i = 0; i < boxes->size(); i += 2)
     {
         marker.id = i / 2;
         marker.scale.x = boxes->points[i].x;

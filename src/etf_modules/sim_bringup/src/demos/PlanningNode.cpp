@@ -7,7 +7,7 @@ sim_bringup::PlanningNode::PlanningNode(const std::string &node_name, const std:
     ConvexHulls(config_file_path)
 {
     AABB::setEnvironment(scenario->getEnvironment());
-    if (AABB::getMinNumCaptures() == 0)
+    if (AABB::getMinNumCaptures() == 1)
         AABB::subscription = this->create_subscription<sensor_msgs::msg::PointCloud2>
             ("/bounding_boxes", 10, std::bind(&AABB::callback, this, std::placeholders::_1));
     else
@@ -67,13 +67,8 @@ void sim_bringup::PlanningNode::planningCallback()
         RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Executing trajectory...");
         if (Robot::isReached(scenario->getGoal()))
         {
-            q_start = scenario->getStart();
-            q_goal = scenario->getGoal();
-
-            // Swap 'q_start' and 'q_goal' for next motion, and repeat the procedure
-            scenario->setStart(q_goal);
-            scenario->setGoal(q_start);
-            state = planning;
+            rclcpp::shutdown();
+            return;
         }
         break;
     }

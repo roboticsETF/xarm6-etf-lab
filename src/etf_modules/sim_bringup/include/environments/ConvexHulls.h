@@ -20,7 +20,7 @@ namespace sim_bringup
         ConvexHulls(const std::string config_file_path);
 
         inline const std::vector<std::vector<fcl::Vector3f>> &getPoints() const { return points; }
-        inline const std::vector<std::vector<int>> &getPolygons() const { return polygons; }
+        inline const std::vector<std::vector<size_t>> &getPolygons() const { return polygons; }
 
         void pointsCallback(const sensor_msgs::msg::PointCloud2::SharedPtr msg);
         void polygonsCallback(const sensor_msgs::msg::PointCloud2::SharedPtr msg);
@@ -30,7 +30,7 @@ namespace sim_bringup
 
     private:
         std::vector<std::vector<fcl::Vector3f>> points;
-        std::vector<std::vector<int>> polygons;
+        std::vector<std::vector<size_t>> polygons;
     };
 }
 

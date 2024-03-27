@@ -20,17 +20,17 @@ namespace perception_etflab
         void move(pcl::PointCloud<pcl::PointXYZRGB>::Ptr pcl);
         bool isValid(const Eigen::Vector3f &pos, float vel);
 
-        inline int getPeriod() const { return period; }
+        inline float getPeriod() const { return period; }
 
     private:
-        int num_obstacles;
+        size_t num_obstacles;
         Eigen::Vector3f dim;
 		float robot_max_vel;                                            // Maximal velocity for each obstacle
         Eigen::Vector3f WS_center;								        // Workspace center point in [m]
         float WS_radius; 										        // Workspace radius in [m]
 		float base_radius;
 		bool table_included;
-        int period; 						                            // Period in [ms]
+        float period; 						                            // Period in [s]
         float max_vel;                                                  // Maximal velocity of each obstacle in [m/s]
 		std::vector<Eigen::Vector3f> velocities; 		                // Velocity vector for each obstacle
         std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr> obstacles;  // Each obstacle represents a single cluster

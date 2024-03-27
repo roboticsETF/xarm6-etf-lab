@@ -20,4 +20,4 @@ random_obstacles:
   num: 10	                        # Number of random obstacles to be added
   max_vel: 1.6 			              # Maximal velocity of each obstacle in [m/s]
   dim: [0.05, 0.05, 0.05]         # Dimensions of each random obstacle in [m]
-  period: 50                      # Period in [ms]
+  period: 0.050                   # Period in [s]

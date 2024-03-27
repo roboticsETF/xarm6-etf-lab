@@ -22,13 +22,13 @@ namespace sim_bringup
         AABB(const std::string &config_file_path);
 
         inline const std::vector<Eigen::Vector3f> &getDimensions() const { return dimensions; }
-        inline const Eigen::Vector3f &getDimensions(int idx) const { return dimensions[idx]; }
+        inline const Eigen::Vector3f &getDimensions(size_t idx) const { return dimensions[idx]; }
         inline const std::vector<Eigen::Vector3f> &getPositions() const { return positions; }
-        inline const Eigen::Vector3f &getPositions(int idx) const { return positions[idx]; }
-        inline int getMinNumCaptures() const { return min_num_captures; }
+        inline const Eigen::Vector3f &getPositions(size_t idx) const { return positions[idx]; }
+        inline size_t getMinNumCaptures() const { return min_num_captures; }
 
         inline void setEnvironment(const std::shared_ptr<env::Environment> &env_) { env = env_; }
-        inline void setMinNumCaptures(int min_num_captures_) { min_num_captures = min_num_captures_; }
+        inline void setMinNumCaptures(size_t min_num_captures_) { min_num_captures = min_num_captures_; }
 
         void updateEnvironment();
         void resetMeasurements();
@@ -43,8 +43,8 @@ namespace sim_bringup
 
         std::vector<Eigen::Vector3f> dimensions;
         std::vector<Eigen::Vector3f> positions;
-        std::vector<int> num_captures;
-        int min_num_captures;
+        std::vector<size_t> num_captures;
+        size_t min_num_captures;
         std::shared_ptr<env::Environment> env;
     };
 }

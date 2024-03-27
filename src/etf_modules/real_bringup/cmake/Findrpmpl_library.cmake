@@ -23,8 +23,10 @@ set(RPMPL_LIBRARY_INCLUDE_DIRS
   ${RPMPL_PATH}/include/planners/rbt
   ${RPMPL_PATH}/include/planners/drbt
   ${RPMPL_PATH}/include/planners/rbt_star
+  ${RPMPL_PATH}/include/planners/trajectory
   ${RPMPL_PATH}/include/robots
   ${RPMPL_PATH}/include/environments
+  ${RPMPL_PATH}/include/environments/objects
   ${RPMPL_PATH}/include/scenario
   ${RPMPL_PATH}/include/configurations
 )

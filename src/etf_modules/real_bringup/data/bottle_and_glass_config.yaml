@@ -1,9 +1,15 @@
-period: 5000   # Period of basic callback function in [ms]
+period: 5.0                                             # Period of basic callback function in [s]
 
 robot:
-  home: [0, 0, 0, 3.1415, 1.5708, 0]
-  max_lin_vel: 500      # in [mm/s]
-  max_lin_acc: 500      # in [mm/s²]
-  max_ang_vel: 1.3      # in [rad/s]
-  max_ang_acc: 1.3      # in [rad/s²]
+  type: "xarm6"
+  urdf: "/RPMPLv2/data/xarm6/xarm6.urdf"
+  space: "RealVectorSpace"
+  num_DOFs: 6
+  q_home: [0, 0, 0, 3.1415, 1.5708, 0]
+  max_lin_vel: 500                                      # In [mm/s]
+  max_vel: [1, 1, 1, 1, 1, 1]                           # Maximal velocity of each robot's joint in [rad/s]
   
+scenario:
+  glass_angles_approach: [55, 35, -36, 180, 89, 0]      # In [deg]
+  glass_angles_pick: [55, 41, -52, 180, 79, 0]          # In [deg]
+  bottle_pose_pick: [640, 0, 90, 0, 1.57, 0]            # (x,y,z) in [mm], and (roll, pitch, yaw) in [rad]

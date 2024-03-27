@@ -12,10 +12,10 @@ from control_msgs.action import GripperCommand as GripperCommandAction
 from control_msgs.msg import GripperCommand
 import numpy as np
 
-class TestMoveXarm6Node(Node):
+class TestMoveRealXarm6Node(Node):
 
     def __init__(self):
-        super().__init__('test_move_xarm6_node')
+        super().__init__('test_move_real_xarm6_node')
         self.period = 5.0
         self.timer = self.create_timer(self.period, self.timer_callback)
         self.trajectory_publisher = self.create_publisher(JointTrajectory, '/xarm6_traj_controller/joint_trajectory', 10)
@@ -106,7 +106,7 @@ class TestMoveXarm6Node(Node):
         
 def main(args=None):
     rclpy.init(args=args)
-    joint_publisher = TestMoveXarm6Node()
+    joint_publisher = TestMoveRealXarm6Node()
     rclpy.spin(joint_publisher)
     joint_publisher.destroy_node()
     rclpy.shutdown()

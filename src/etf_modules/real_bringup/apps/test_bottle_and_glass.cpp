@@ -1,4 +1,4 @@
-#include "base/BottleAndGlassNode.h"
+#include "demos/BottleAndGlassNode.h"
 
 int main(int argc, char *argv[])
 {

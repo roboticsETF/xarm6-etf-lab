@@ -1,9 +1,14 @@
-period: 5000   # Period of basic callback function in [ms]
+period: 5.0                                             # Period of basic callback function in [s]
 
 robot:
-  home: [0, 0, 0, 3.1415, 1.5708, 0]
-  max_lin_vel: 500      # in [mm/s]
-  max_lin_acc: 500      # in [mm/s²]
-  max_ang_vel: 1.3      # in [rad/s]
-  max_ang_acc: 1.3      # in [rad/s²]
+  type: "xarm6"
+  urdf: "/RPMPLv2/data/xarm6/xarm6.urdf"
+  space: "RealVectorSpace"
+  num_DOFs: 6
+  q_home: [0, 0, 0, 3.1415, 1.5708, 0]
+  max_lin_vel: 500                                      # In [mm/s]
+  max_vel: [1, 1, 1, 1, 1, 1]                           # Maximal velocity of each robot's joint in [rad/s]
   
+scenario:
+  delta_z: 120                                          # In [mm]
+  offset_z: 10                                          # In [mm]

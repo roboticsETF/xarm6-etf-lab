@@ -29,7 +29,7 @@ perception_etflab::PointCloudCombinerNode::PointCloudCombinerNode(const std::str
 void perception_etflab::PointCloudCombinerNode::pointCloudCallback(const sensor_msgs::msg::PointCloud2::SharedPtr msg)
 {
 	geometry_msgs::msg::TransformStamped transform_stamped_msg;
-	std::string frame_id = msg->header.frame_id;
+	std::string frame_id { msg->header.frame_id };
 	try
 	{
 		transform_stamped_msg = tf_buffer->lookupTransform("world", frame_id, rclcpp::Time(0));

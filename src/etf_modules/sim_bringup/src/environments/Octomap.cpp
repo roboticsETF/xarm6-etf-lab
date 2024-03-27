@@ -2,11 +2,11 @@
 
 sim_bringup::Octomap::Octomap(const std::string config_file_path)
 {
-    std::string project_abs_path = std::string(__FILE__);
-    for (int i = 0; i < 4; i++)
+    std::string project_abs_path(__FILE__);
+    for (size_t i = 0; i < 4; i++)
         project_abs_path = project_abs_path.substr(0, project_abs_path.find_last_of("/\\"));
 
-    YAML::Node node = YAML::LoadFile(project_abs_path + config_file_path);
+    YAML::Node node { YAML::LoadFile(project_abs_path + config_file_path) };
 
     read_node = rclcpp::Node::make_shared("read_node");
     client = read_node->create_client<octomap_msgs::srv::GetOctomap>("/octomap_binary");
@@ -25,12 +25,12 @@ void sim_bringup::Octomap::read()
     }
 
     // Wait for the result  
-    auto request = std::make_shared<octomap_msgs::srv::GetOctomap::Request>();
-    auto result = client->async_send_request(request);
+    auto request { std::make_shared<octomap_msgs::srv::GetOctomap::Request>() };
+    auto result { client->async_send_request(request) };
     if (rclcpp::spin_until_future_complete(read_node, result) == rclcpp::FutureReturnCode::SUCCESS)
     {
-        octomap_msgs::msg::Octomap octomap_msg = result.get()->map;
-        octomap::AbstractOcTree* octomap_abstract_octree = octomap_msgs::binaryMsgToMap(octomap_msg);
+        octomap_msgs::msg::Octomap octomap_msg { result.get()->map };
+        octomap::AbstractOcTree* octomap_abstract_octree { octomap_msgs::binaryMsgToMap(octomap_msg) };
         octomap_octree = dynamic_cast<octomap::OcTree*>(octomap_abstract_octree);
 
         fcl::OcTreef Octree(std::make_shared<const octomap::OcTree>(*octomap_octree));
@@ -45,12 +45,13 @@ void sim_bringup::Octomap::read()
 
 void sim_bringup::Octomap::visualize()
 {
-    std::vector<std::array<float, 6>> boxes = octree->toBoxes();
-    visualization_msgs::msg::MarkerArray marker_array_msg;
-    for (int i = 0; i < boxes.size(); i++) 
+    std::vector<std::array<float, 6>> boxes { octree->toBoxes() };
+    visualization_msgs::msg::MarkerArray marker_array_msg {};
+
+    for (size_t i = 0; i < boxes.size(); i++) 
     {
-        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Box %d: (%f, %f, %f)", i, boxes[i][0], boxes[i][1], boxes[i][2]);
-        visualization_msgs::msg::Marker marker;
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Box %ld: (%f, %f, %f)", i, boxes[i][0], boxes[i][1], boxes[i][2]);
+        visualization_msgs::msg::Marker marker {};
         marker.type = visualization_msgs::msg::Marker::CUBE;
         marker.action = visualization_msgs::msg::Marker::ADD;
         marker.ns = "octree_boxes";

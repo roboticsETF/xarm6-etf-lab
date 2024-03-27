@@ -3,7 +3,7 @@
 <package format="3">
   <name>real_bringup</name>
   <version>0.0.1</version>
-  <description>Package for starting up real Xarm 6 robot setup</description>
+  <description>Package for starting up real xArm6 robot setup</description>
   <maintainer email="nermin.covic@etf.unsa.ba">root</maintainer>
   <maintainer email="dinko.osmankovic@etf.unsa.ba">root</maintainer>
   <license>TODO: License declaration</license>
@@ -27,6 +27,7 @@
   <depend>xarm_msgs</depend>
   <depend>xarm_api</depend>
   <depend>rpmpl_library</depend>
+  <depend>sim_bringup_library</depend>
 
   <exec_depend>ros2launch</exec_depend>
     

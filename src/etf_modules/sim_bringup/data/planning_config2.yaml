@@ -6,8 +6,8 @@ robot:
   space: "RealVectorSpace"
   num_DOFs: 6
   q_home:  [0, 0, 0, 3.1415, 1.5708, 0]
-  q_start: [0, 0, 0, 3.1415, 1.5708, 0]
-  q_goal:  [1.5708, 0, 0, 3.1415, 1.5708, 0]
+  q_start: [3.1415, 0.7854, -3.1415, -3.1415, 0, 3.1415]
+  q_goal:  [0, 0, 0, 3.1415, 1.5708, 0]
   capsules_radius: [0.047, 0.12, 0.11, 0.09, 0.05, 0.1]       # When the gripper is attached
   gripper_length: 0.17                                        # In [m]
   table_included: true                                        # Please check whether 'table' is added in 'environment'
@@ -23,6 +23,7 @@ planner:
   configurations: "/RPMPLv2"
   max_planning_time: 0.8                                      # In [s]
   max_edge_length: 0.5                                        # In [rad]
+  trajectory_max_time_step: 0.1                               # In [s]
 
 environment:
   - box:
@@ -31,9 +32,4 @@ environment:
       pos: [0, 0, -0.05]
 
 cameras:
-  min_num_captures: 3                                         # Minimal number of captures/frames of a single STATIC obstacle to become valid
-  
-scenario:
-  max_object_height: 0.1                                      # Maximal height of an object that can be picked up
-  picking_object_wait_max: 4                                  # Number of periods 'period' to wait in [s]
-  destination: [-0.5, 0, 0.2]                                 # Coordinates of a destination box
+  min_num_captures: 1                                         # Minimal number of captures/frames of a single STATIC obstacle to become valid

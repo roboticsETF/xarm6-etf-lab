@@ -14,6 +14,7 @@ namespace sim_bringup
     protected:
         void planningCallback() override { taskPlanningCallback(); }
         void taskPlanningCallback();
+        void planningCase();
         bool computeObjectApproachAndPickStates();
         int chooseObject() override;
         bool whetherToRemove(const Eigen::Vector3f &object_pos, const Eigen::Vector3f &object_dim) override;
@@ -38,8 +39,8 @@ namespace sim_bringup
         std::shared_ptr<base::State> q_goal;
         int obj_idx;
         int IK_computed;
-        int picking_object_wait = 4;
-        const float delta_z = 0.2, offset_z = 0;
-        const Eigen::Vector3f goal_pos = Eigen::Vector3f(-0.5, 0, 0.2);
+        size_t picking_object_wait, picking_object_wait_max;
+        float max_object_height;
+        Eigen::Vector3f destination;
     };
 }

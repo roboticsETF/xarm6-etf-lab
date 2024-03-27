@@ -27,15 +27,15 @@ void sim_bringup::MoveXArm6Node::goHome()
 {
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Going home...");
     Trajectory::clear();
-    Trajectory::addPoint(0.9 * period / 1000, Robot::getHomeJointsPosition());
+    Trajectory::addPoint(0.9 * period, Robot::getHomeJointsPosition());
     Trajectory::publish();
 }
 
 void sim_bringup::MoveXArm6Node::moveInJointSpace()
 {
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Moving in joint space...");
-    std::vector<Eigen::VectorXf> path;
-    std::vector<float> time_instances;
+    std::vector<Eigen::VectorXf> path {};
+    std::vector<float> time_instances {};
     Eigen::VectorXf q(6);
 
     q << -M_PI_2, 0, 0, M_PI, M_PI_2, 0;

@@ -22,22 +22,20 @@ namespace sim_bringup
         Planner(const std::string &config_file_path);
 
         inline const std::unique_ptr<planning::AbstractPlanner> &getPlanner() const { return planner; }
-        inline const std::string &getName() const { return name; }
+        inline planning::PlannerType getPlannerType() const { return planner_type; }
         inline const std::vector<std::shared_ptr<base::State>> &getPath() const { return planner->getPath(); }
-        inline int getPlanningTime() const { return planner->getPlannerInfo()->getPlanningTime(); }
+        inline float getPlanningTime() const { return planner->getPlannerInfo()->getPlanningTime(); }
         inline bool isReady() const { return ready; }
 
-        inline void setName(const std::string &name_) { name = name_; }
-
         bool solve(std::shared_ptr<base::State> q_start = nullptr, std::shared_ptr<base::State> q_goal = nullptr, 
-                   int max_planning_time_ = -1);
+                   float max_planning_time_ = -1);
 
         std::shared_ptr<scenario::Scenario> scenario;
 
     private:
         std::unique_ptr<planning::AbstractPlanner> planner;
-        std::string name;
-        int max_planning_time;                                  // In [ms]
+        planning::PlannerType planner_type;
+        float max_planning_time;                                  // In [s]
         bool ready;
     };
 }

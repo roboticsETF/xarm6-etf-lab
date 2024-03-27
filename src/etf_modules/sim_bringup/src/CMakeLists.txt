@@ -20,7 +20,10 @@ target_include_directories(sim_bringup_library PUBLIC ${INCLUDE_DIRS})
 # All users of this library will need at least C++17
 target_compile_features(sim_bringup_library PUBLIC cxx_std_17)
 
-target_link_libraries(sim_bringup_library PUBLIC ${RPMPL_LIBRARY} ${RPMPL_LIBRARIES})
+target_link_libraries(sim_bringup_library PUBLIC 
+  ${RPMPL_LIBRARY} 
+  ${RPMPL_LIBRARIES}
+)
 
 ament_target_dependencies(sim_bringup_library PUBLIC 
   rclcpp

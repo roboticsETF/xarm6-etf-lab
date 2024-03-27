@@ -3,14 +3,15 @@
 perception_etflab::Robot::Robot(const std::string &config_file_path)
 {
     std::string project_abs_path(__FILE__);
-	for (int i = 0; i < 3; i++)
+	for (size_t i = 0; i < 3; i++)
 		project_abs_path = project_abs_path.substr(0, project_abs_path.find_last_of("/\\"));
 
-    YAML::Node node = YAML::LoadFile(project_abs_path + config_file_path);
-    YAML::Node robot_node = node["robot"];
-    int num_DOFs = robot_node["num_DOFs"].as<int>();
-    std::vector<float> capsules_radius;
-    for (int i = 0; i < num_DOFs; i++)
+    YAML::Node node { YAML::LoadFile(project_abs_path + config_file_path) };
+    YAML::Node robot_node { node["robot"] };
+    num_DOFs = robot_node["num_DOFs"].as<size_t>();
+
+    std::vector<float> capsules_radius {};
+    for (size_t i = 0; i < num_DOFs; i++)
         capsules_radius.emplace_back(robot_node["capsules_radius"][i].as<float>());
 
     robot = std::make_shared<robots::xArm6>(project_abs_path + robot_node["urdf"].as<std::string>(),
@@ -19,14 +20,14 @@ perception_etflab::Robot::Robot(const std::string &config_file_path)
     robot->setCapsulesRadius(capsules_radius);
                                             
     Eigen::VectorXf q_start(num_DOFs);
-    for (int i = 0; i < num_DOFs; i++)
+    for (size_t i = 0; i < num_DOFs; i++)
         q_start(i) = robot_node["q_start"][i].as<float>();
     joints_state = std::make_shared<base::RealVectorSpaceState>(q_start);
     robot->setConfiguration(joints_state);
     skeleton = robot->computeSkeleton(joints_state);
 
     table_radius = robot_node["table_radius"].as<float>();
-    for (int i = 0; i < num_DOFs; i++)
+    for (size_t i = 0; i < num_DOFs; i++)
         tolerance_factors.emplace_back(robot_node["tolerance_factors"][i].as<float>());
 
     // Uncomment if you are using 'removeFromScene3' function
@@ -36,11 +37,14 @@ perception_etflab::Robot::Robot(const std::string &config_file_path)
 
 void perception_etflab::Robot::jointsStateCallback(const control_msgs::msg::JointTrajectoryControllerState::SharedPtr msg)
 {
-	std::vector<double> positions = msg->actual.positions;
-	Eigen::VectorXf q(6);
-	q << positions[0], positions[1], positions[2], positions[3], positions[4], positions[5];
+	Eigen::VectorXf q(num_DOFs);
+    for (size_t i = 0; i < num_DOFs; i++)
+        q(i) = msg->actual.positions[i];
+
     joints_state = std::make_shared<base::RealVectorSpaceState>(q);
-	// RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Robot joint states: (%f, %f, %f, %f, %f, %f).", q(0), q(1), q(2), q(3), q(4), q(5));
+
+    // if (num_DOFs == 6)
+	//     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Robot joint states: (%f, %f, %f, %f, %f, %f).", q(0), q(1), q(2), q(3), q(4), q(5));
 }
 
 // Remove all PCL points occupied by the robot's capsules.
@@ -59,11 +63,11 @@ void perception_etflab::Robot::removeFromScene(std::vector<pcl::PointCloud<pcl::
 		skeleton = robot->computeSkeleton(joints_state);
 	}
     
-    bool remove_cluster = false;
-    int cnt = clusters.size();
+    bool remove_cluster { false };
+    size_t cnt { clusters.size() };
     for (std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr>::iterator cluster = clusters.end()-1; cluster >= clusters.begin(); cluster--)
     {
-        // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Considering cluster %d", --cnt);
+        // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Considering cluster %ld", --cnt);
         for (pcl::PointCloud<pcl::PointXYZRGB>::iterator pcl_point = (*cluster)->begin(); pcl_point < (*cluster)->end(); pcl_point++)
 	    {
 		    Eigen::Vector3f point(pcl_point->x, pcl_point->y, pcl_point->z);
@@ -91,7 +95,7 @@ void perception_etflab::Robot::removeFromScene(std::vector<pcl::PointCloud<pcl::
             }
         }
     }
-    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "After removing robot from the scene, there are %d clusters.", clusters.size());
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "After removing robot from the scene, there are %ld clusters.", clusters.size());
 }
 
 // Remove all PCL points occupied by the robot's capsules.
@@ -127,7 +131,7 @@ void perception_etflab::Robot::removeFromScene2(const pcl::PointCloud<pcl::Point
             }
         }
     }
-    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "After removing robot from the scene, point cloud size is %d.", pcl->size());
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "After removing robot from the scene, point cloud size is %ld.", pcl->size());
 }
 
 // This method requires using xarm_client.
@@ -138,10 +142,10 @@ void perception_etflab::Robot::removeFromScene3(std::vector<pcl::PointCloud<pcl:
     if (clusters.empty())
         return;
 
-    std::vector<float> pose;
+    std::vector<float> pose {};
     xarm_client.get_position(pose);
     Eigen::Vector3f TCP(pose[0]/1000, pose[1]/1000, pose[2]/1000);
-    Eigen::Matrix3f R;
+    Eigen::Matrix3f R {};
     R = Eigen::AngleAxisf(pose[5], Eigen::Vector3f::UnitZ()) 
       * Eigen::AngleAxisf(pose[4], Eigen::Vector3f::UnitY())
       * Eigen::AngleAxisf(pose[3], Eigen::Vector3f::UnitX());
@@ -153,14 +157,14 @@ void perception_etflab::Robot::removeFromScene3(std::vector<pcl::PointCloud<pcl:
     // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Vector a: (%f, %f, %f)", R(0,2), R(1,2), R(2,2));
 
     // (AB, r) represents a capsule that encloses the last robot link including the attached gripper
-    Eigen::Vector3f A = TCP - R.col(2) * 0.07;
-    Eigen::Vector3f B = A - R.col(2) * 0.13;
-    float r = 0.1;
-    int cnt = clusters.size();
+    Eigen::Vector3f A { TCP - R.col(2) * 0.07 };
+    Eigen::Vector3f B { A - R.col(2) * 0.13 };
+    float r { 0.1 };
+    size_t cnt { clusters.size() };
 
     for (std::vector<pcl::PointCloud<pcl::PointXYZRGB>::Ptr>::iterator cluster = clusters.end()-1; cluster >= clusters.begin(); cluster--)
     {
-        // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Considering cluster %d", --cnt);
+        // RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Considering cluster %ld", --cnt);
         for (pcl::PointCloud<pcl::PointXYZRGB>::iterator pcl_point = (*cluster)->begin(); pcl_point < (*cluster)->end(); pcl_point++)
 	    {
             // Filter points occupying the last link
@@ -173,7 +177,7 @@ void perception_etflab::Robot::removeFromScene3(std::vector<pcl::PointCloud<pcl:
             }
         }
     }
-    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "After removing robot from the scene, there are %d clusters.", clusters.size());
+    RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "After removing robot from the scene, there are %ld clusters.", clusters.size());
 }
 
 void perception_etflab::Robot::visualizeCapsules()
@@ -185,10 +189,10 @@ void perception_etflab::Robot::visualizeCapsules()
         marker.ns = "robot_capsules";
         marker.header.frame_id = "world";
         // marker.header.stamp = now();
-    Eigen::Vector3f A, B, C, AB;
-    float theta;
+    Eigen::Vector3f A {}, B {}, C {}, AB {};
+    float theta {};
 
-    for (int i = 0; i < skeleton->cols() - 1; i++) 
+    for (long int i = 0; i < skeleton->cols() - 1; i++) 
     {
         A = skeleton->col(i);
         B = skeleton->col(i+1);
@@ -216,7 +220,7 @@ void perception_etflab::Robot::visualizeCapsules()
         marker.color.a = 0.2;
         marker_array_msg.markers.emplace_back(marker);
 
-        for (int j = 0; j < 2; j++)
+        for (size_t j = 0; j < 2; j++)
         {
             C = skeleton->col(i+j);
             marker.type = visualization_msgs::msg::Marker::SPHERE;
@@ -248,7 +252,7 @@ void perception_etflab::Robot::visualizeSkeleton()
     std::shared_ptr<Eigen::MatrixXf> skeleton = robot->computeSkeleton(joints_state);
     visualization_msgs::msg::MarkerArray marker_array_msg;
     visualization_msgs::msg::Marker marker;
-    Eigen::Vector3f P;
+    Eigen::Vector3f P {};
     
     marker.type = visualization_msgs::msg::Marker::LINE_STRIP;
     marker.action = visualization_msgs::msg::Marker::ADD;
@@ -257,7 +261,7 @@ void perception_etflab::Robot::visualizeSkeleton()
     marker.header.frame_id = "world";
     // marker.header.stamp = now();
     geometry_msgs::msg::Point point;
-    for (int i = 0; i < skeleton->cols(); i++) 
+    for (long int i = 0; i < skeleton->cols(); i++) 
     {
         P = skeleton->col(i);
         point.x = P(0); 

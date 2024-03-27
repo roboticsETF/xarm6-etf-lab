@@ -5,7 +5,6 @@
 #ifndef SIM_BRINGUP_BASE_NODE_H
 #define SIM_BRINGUP_BASE_NODE_H
 
-#include "base/Robot.h"
 #include "base/Trajectory.h"
 #include "base/Planner.h"
 
@@ -18,7 +17,6 @@ namespace sim_bringup
 {
     class BaseNode : public rclcpp::Node,
                      public sim_bringup::Trajectory,
-                     public sim_bringup::Robot,
                      public sim_bringup::Planner
     {
     public:
@@ -28,7 +26,7 @@ namespace sim_bringup
         virtual void baseCallback() = 0;
 
         rclcpp::TimerBase::SharedPtr timer;
-        int period;                             // Period of basic callback function in [ms]
+        float period;                             // Period of basic callback function in [s]
 
     protected:
         std::string project_abs_path;

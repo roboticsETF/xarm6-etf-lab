@@ -1,9 +1,15 @@
-#include "base/PickAndPlaceUsingCamerasNode.h"
+#include "demos/PickAndPlaceUsingCamerasNode.h"
 
-real_bringup::PickAndPlaceUsingCamerasNode::PickAndPlaceUsingCamerasNode(const std::string node_name, const std::string config_file_path) : 
+real_bringup::PickAndPlaceUsingCamerasNode::PickAndPlaceUsingCamerasNode(const std::string &node_name, const std::string &config_file_path) : 
     PickAndPlaceNode(node_name, config_file_path),
     AABB(config_file_path)
 {
+    YAML::Node node { YAML::LoadFile(project_abs_path + config_file_path) };
+    YAML::Node scenario { node["scenario"] };
+
+    delta_z = scenario["delta_z"].as<float>();
+    offset_z = scenario["offset_z"].as<float>();
+
     AABB::subscription = this->create_subscription<sensor_msgs::msg::PointCloud2>
         ("/bounding_boxes", 10, std::bind(&AABB::withFilteringCallback, this, std::placeholders::_1));
 
@@ -36,11 +42,11 @@ void real_bringup::PickAndPlaceUsingCamerasNode::pickAndPlaceUsingCamerasCallbac
 
     case going_towards_object:
         RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Going towards the object...");
-        Robot::xarm_client.get_servo_angle(current_angles);
+        xarm_client.get_servo_angle(current_angles);
         current_angles[0] = std::atan2(AABB::getPositions(obj_idx).y(), AABB::getPositions(obj_idx).x());            
-        Robot::xarm_client.set_servo_angle(current_angles, Robot::getMaxAngVel(), Robot::getMaxAngAcc(), 0, true, 1, -1);
-        Robot::xarm_client.set_position(object_approach_pose, -1, Robot::getMaxLinVel(), Robot::getMaxLinAcc(), 0, true, 1);
-        Robot::xarm_client.set_gripper_position(850, true, 1);
+        xarm_client.set_servo_angle(current_angles, Robot::getMaxVel(0), Robot::getMaxAcc(0), 0, true, 1, -1);
+        xarm_client.set_position(object_approach_pose, -1, Robot::getMaxLinVel(), Robot::getMaxLinAcc(), 0, true, 1);
+        xarm_client.set_gripper_position(850, true, 1);
         task = picking_object;
         break;
 
@@ -48,16 +54,16 @@ void real_bringup::PickAndPlaceUsingCamerasNode::pickAndPlaceUsingCamerasCallbac
         RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Picking the object...");
         current_pose = object_approach_pose; 
         current_pose[2] -= delta_z;
-        Robot::xarm_client.set_position(current_pose, -1, 0.5*Robot::getMaxLinVel(), 0.5*Robot::getMaxLinAcc(), 0, true, 1);
-        Robot::xarm_client.set_position(object_pick_pose, -1, 0.5*Robot::getMaxLinVel(), 0.5*Robot::getMaxLinAcc(), 0, true, 1);
-        Robot::xarm_client.set_gripper_position(0, true, 1);
+        xarm_client.set_position(current_pose, -1, 0.5*Robot::getMaxLinVel(), 0.5*Robot::getMaxLinAcc(), 0, true, 1);
+        xarm_client.set_position(object_pick_pose, -1, 0.5*Robot::getMaxLinVel(), 0.5*Robot::getMaxLinAcc(), 0, true, 1);
+        xarm_client.set_gripper_position(0, true, 1);
         task = raising_object;
         break;
 
     case raising_object:
         RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Raising the object...");
         current_pose[2] += 2*delta_z;
-        Robot::xarm_client.set_position(current_pose, -1, Robot::getMaxLinVel(), Robot::getMaxLinAcc(), 0, true, 1);
+        xarm_client.set_position(current_pose, -1, Robot::getMaxLinVel(), Robot::getMaxLinAcc(), 0, true, 1);
         task = moving_object_to_destination;
         break;
 
@@ -74,13 +80,13 @@ void real_bringup::PickAndPlaceUsingCamerasNode::pickAndPlaceUsingCamerasCallbac
         else
         {
             RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Moving the object to destination...");
-            Robot::xarm_client.get_servo_angle(current_angles);
+            xarm_client.get_servo_angle(current_angles);
             if (std::atan2(AABB::getPositions(obj_idx).y(), AABB::getPositions(obj_idx).x()) > 0)
                 current_angles[0] = M_PI - 0.05;
             else
                 current_angles[0] = -M_PI + 0.05;
             
-            Robot::xarm_client.set_servo_angle(current_angles, Robot::getMaxAngVel(), Robot::getMaxAngAcc(), 0, true, 1, -1);
+            xarm_client.set_servo_angle(current_angles, Robot::getMaxVel(0), Robot::getMaxAcc(0), 0, true, 1, -1);
             task = releasing_object;
             offset_z = 0;
         }
@@ -88,10 +94,10 @@ void real_bringup::PickAndPlaceUsingCamerasNode::pickAndPlaceUsingCamerasCallbac
     
     case releasing_object:
         RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Releasing the object...");       
-        Robot::xarm_client.get_position(current_pose);
+        xarm_client.get_position(current_pose);
         current_pose[0] = -550;
-        Robot::xarm_client.set_position(current_pose, -1, 0.5*Robot::getMaxLinVel(), 0.5*Robot::getMaxLinAcc(), 0, true, 1);
-        Robot::xarm_client.set_gripper_position(850, true, 1);
+        xarm_client.set_position(current_pose, -1, 0.5*Robot::getMaxLinVel(), 0.5*Robot::getMaxLinAcc(), 0, true, 1);
+        xarm_client.set_gripper_position(850, true, 1);
         task = waiting_for_object;
         break;
     }
@@ -99,35 +105,35 @@ void real_bringup::PickAndPlaceUsingCamerasNode::pickAndPlaceUsingCamerasCallbac
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "---------------------------------------------"); 
 }
 
-const int real_bringup::PickAndPlaceUsingCamerasNode::chooseObject()
+int real_bringup::PickAndPlaceUsingCamerasNode::chooseObject()
 {
-    float z_max = -INFINITY;
-    int obj_idx = -1;
-    for (int i = 0; i < positions.size(); i++)
+    float z_max { -INFINITY };
+    int obj_idx_ { -1 };
+    for (size_t i = 0; i < positions.size(); i++)
     {
-        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Object %d. dim = (%f, %f, %f), pos = (%f, %f, %f). Num. captures %d.",
+        RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Object %ld. dim = (%f, %f, %f), pos = (%f, %f, %f). Num. captures %ld.",
             i, dimensions[i].x(), dimensions[i].y(), dimensions[i].z(), 
                positions[i].x(), positions[i].y(), positions[i].z(), num_captures[i]);
         if (num_captures[i] >= min_num_captures && positions[i].z() > z_max)
         {
             z_max = positions[i].z();
-            obj_idx = i;
+            obj_idx_ = i;
         }
     }
 
-    if (obj_idx != -1)
+    if (obj_idx_ != -1)
         RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "Object %d is recognized at the position (%f, %f, %f).", 
-            obj_idx, positions[obj_idx].x(), positions[obj_idx].y(), positions[obj_idx].z());
+            obj_idx_, positions[obj_idx_].x(), positions[obj_idx_].y(), positions[obj_idx_].z());
     
-    return obj_idx;
+    return obj_idx_;
 }
 
 void real_bringup::PickAndPlaceUsingCamerasNode::computeObjectApproachAndPickPose()
 {
-    const Eigen::Vector3f pos = AABB::getPositions(obj_idx);
-    const Eigen::Vector3f dim = AABB::getDimensions(obj_idx);
-    Eigen::Matrix3f R;
-    Eigen::Vector3f RPY, YPR;
+    const Eigen::Vector3f pos { AABB::getPositions(obj_idx) };
+    const Eigen::Vector3f dim { AABB::getDimensions(obj_idx) };
+    Eigen::Matrix3f R {};
+    Eigen::Vector3f RPY {}, YPR {};
 
     // For approaching from above
     R.col(0) << pos.x(), pos.y(), 0; R.col(0).normalize();
@@ -148,8 +154,8 @@ void real_bringup::PickAndPlaceUsingCamerasNode::computeObjectApproachAndPickPos
     RPY << YPR(2), YPR(1), YPR(0);
     RCLCPP_INFO(rclcpp::get_logger("rclcpp"), "RPY: (%f, %f, %f)", RPY(0), RPY(1), RPY(2));
     
-    float fi = std::atan2(pos.y(), pos.x());
-    float r = pos.head(2).norm();
+    float fi { std::atan2(pos.y(), pos.x()) };
+    float r { pos.head(2).norm() };
     if (r < 0.3)
         r += 1.5 * dim.head(2).norm();
     else

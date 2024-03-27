@@ -53,13 +53,13 @@ def generate_launch_description():
 
     tf_node_link_base_aruco_marker = Node(package = "tf2_ros", 
             executable = "static_transform_publisher",
-            arguments = ["0.46", "0", "0", "1.57079", "0", "0", "link_base", "aruco_marker"]
+            arguments = ["0.43", "0", "0", "1.57079", "0", "0", "link_base", "aruco_marker"]
     )
 
     tf_node_aruco_marker_camera_left_link = Node(package = "tf2_ros", 
             name="left_transform",
             executable = "static_transform_publisher",
-            arguments = ["-1.13", "0", "0.95", "0.38", "0.66", "0.06", \
+            arguments = ["-1.14", "0", "0.92", "0.37", "0.67", "0.06", \
                         "aruco_marker", "camera_left_link"]     # (x,y,z, yaw(z), pich(y), roll(x))
 	)
 
@@ -122,8 +122,8 @@ def generate_launch_description():
         name='pointcloud_combiner',
         output='screen',
         parameters=[
-            {"point_cloud_topics": ["/camera_left/depth/color/points", "/camera_right/depth/color/points"]},
-            # {"point_cloud_topics": ["/camera_left/depth/color/points"]},
+            # {"point_cloud_topics": ["/camera_left/depth/color/points", "/camera_right/depth/color/points"]},
+            {"point_cloud_topics": ["/camera_left/depth/color/points"]},
             # {"point_cloud_topics": ["/camera_right/depth/color/points"]},
             {"output_topic": "pointcloud_combined"}
         ]
@@ -160,8 +160,8 @@ def generate_launch_description():
         tf_node_world_link_base,
         tf_node_link_base_aruco_marker,
         tf_node_aruco_marker_camera_left_link,
-        tf_node_aruco_marker_aruco_marker_from_right,
-        tf_node_aruco_marker_from_right_camera_right_link,
+        # tf_node_aruco_marker_aruco_marker_from_right,
+        # tf_node_aruco_marker_from_right_camera_right_link,
         
         # tf_node_aruco_marker_camera_left,
         # tf_node_camera_left_camera_left_link,
